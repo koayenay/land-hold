@@ -13,7 +13,10 @@ dotenv.config()
 
 const app = express()
 connectDB()
-
+// Root route
+app.get("/", (req, res) => {
+  res.send("Welcome to the backend API!")
+})
 app.use(cors())
 app.use(express.json())
 app.use("/api/auth", authRoutes)
