@@ -8,7 +8,7 @@ import axios from "axios"
 //   },
 // })
 const api = axios.create({
-  baseURL: process.env.REACT_APP_BACKEND_URL,
+  baseURL: "https://backend-ygez.onrender.com",
   headers: {
     "Content-Type": "application/json",
   },
