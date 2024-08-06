@@ -13,6 +13,7 @@ const OwnerList = ({ onEdit }) => {
       try {
         const response = await api.get("/owners")
         setOwners(response.data)
+        // response.data.forEach((owner) => fetchFiles(owner.ownerName))
       } catch (error) {
         console.error("Error fetching owners:", error)
       }
@@ -34,15 +35,17 @@ const OwnerList = ({ onEdit }) => {
     setSelectedOwnerId(id)
   }
 
-  const fetchFiles = async (ownerName) => {
-    try {
-      const response = await api.get(`/uploads/owner/${ownerName}`)
-      setFileUrls((prev) => ({ ...prev, [ownerName]: response.data }))
-    } catch (error) {
-      console.error("Error fetching files:", error)
-    }
-  }
-
+  // const fetchFiles = async (ownerId) => {
+  //   try {
+  //     const response = await api.get(`/files/owner/${ownerId}`)
+  //     setFileUrls((prev) => ({
+  //       ...prev,
+  //       [ownerId]: response.data, // Assuming response.data contains an array of file information
+  //     }))
+  //   } catch (error) {
+  //     console.error("Error fetching files:", error)
+  //   }
+  // }
   return (
     <div>
       <h2>Owner List</h2>
@@ -59,19 +62,15 @@ const OwnerList = ({ onEdit }) => {
               <FileUpload
                 entityId={owner._id}
                 entityType='owner'
-                onUpload={() =>
-                  fetchFiles(owner.ownerName.replace(/\s+/g, "_"))
-                } // Call to update file list after upload
+                // onUpload={() => fetchFiles(owner.ownerName)}
+                // Call to update file list after upload
               />
             )}
             <ul>
-              {(fileUrls[owner.ownerName] || []).map((file) => (
-                <li key={file}>
+              {(fileUrls[owner.ownerName] || []).map((file, index) => (
+                <li key={index}>
                   <a
-                    href={`/uploads/owner/${owner.ownerName.replace(
-                      /\s+/g,
-                      "_"
-                    )}/${file}`}
+                    href={`http://localhost:5000/uploads/owner/${file}`}
                     target='_blank'
                     rel='noopener noreferrer'
                   >

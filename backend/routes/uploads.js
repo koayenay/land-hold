@@ -18,5 +18,23 @@ router.post(
     }
   }
 )
+// Route to list all files for a specific owner
+router.get("/uploads/owner/:ownerName", (req, res) => {
+  const ownerName = req.params.ownerName
+  const directoryPath = path.join(
+    __dirname,
+    "..",
+    "uploads",
+    "owner",
+    ownerName
+  )
 
+  fs.readdir(directoryPath, (err, files) => {
+    if (err) {
+      return res.status(500).json({ message: "Unable to scan files!" })
+    }
+    // Return the list of file names
+    res.status(200).json(files)
+  })
+})
 module.exports = router
