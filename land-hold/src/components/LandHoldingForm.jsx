@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react"
 import api from "../services/api"
 
-const LandHoldingForm = ({ landHolding, onSave }) => {
+const LandHoldingForm = ({ landHolding }) => {
   const [name, setName] = useState("")
   const [owner, setOwner] = useState("")
   const [legalEntity, setLegalEntity] = useState("")
@@ -13,6 +13,10 @@ const LandHoldingForm = ({ landHolding, onSave }) => {
   const [range, setRange] = useState("")
   const [titleSource, setTitleSource] = useState("Class A")
   const [owners, setOwners] = useState([])
+
+  // Error and success message states
+  const [errors, setErrors] = useState({})
+  const [message, setMessage] = useState("")
 
   useEffect(() => {
     const fetchOwners = async () => {
@@ -42,8 +46,32 @@ const LandHoldingForm = ({ landHolding, onSave }) => {
     }
   }, [landHolding])
 
+  const validate = () => {
+    let newErrors = {}
+    if (!name) newErrors.name = "Name is required"
+    if (!owner) newErrors.owner = "Owner is required"
+    if (!legalEntity) newErrors.legalEntity = "Legal Entity is required"
+    if (netMineralAcres <= 0)
+      newErrors.netMineralAcres = "Net Mineral Acres must be greater than 0"
+    if (mineralOwnerRoyalty <= 0)
+      newErrors.mineralOwnerRoyalty =
+        "Mineral Owner Royalty must be greater than 0"
+    if (!sectionName) newErrors.sectionName = "Section Name is required"
+    if (!/^\d{3}$/.test(section))
+      newErrors.section = "Section must be a 3-digit number"
+    if (!/^\d{3}[NS]$/.test(township))
+      newErrors.township = "Township must be in the format 123N or 123S"
+    if (!/^\d{3}[EW]$/.test(range))
+      newErrors.range = "Range must be in the format 123E or 123W"
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
+    if (!validate()) return
+
     const data = {
       name,
       owner,
@@ -60,11 +88,14 @@ const LandHoldingForm = ({ landHolding, onSave }) => {
     try {
       if (landHolding) {
         await api.put(`/landholdings/${landHolding._id}`, data)
+        setMessage("Land holding updated successfully.")
+        console.log("Land holding updated successfully.")
       } else {
         await api.post("/landholdings", data)
+        setMessage("Land holding saved successfully.")
+        console.log("Land holding saved successfully.")
       }
-      onSave()
-      // Reset form fields
+      // Optional: Reset form fields after save
       setName("")
       setOwner("")
       setLegalEntity("")
@@ -75,29 +106,88 @@ const LandHoldingForm = ({ landHolding, onSave }) => {
       setTownship("")
       setRange("")
       setTitleSource("Class A")
+      setErrors({})
     } catch (error) {
+      setMessage("Error saving land holding. Please try again.")
       console.error("Error saving land holding:", error)
+    }
+  }
+
+  // Handle change functions for inputs to update state and clear errors
+  const handleNameChange = (e) => {
+    setName(e.target.value)
+    if (errors.name) {
+      setErrors({ ...errors, name: "" })
+    }
+  }
+
+  const handleOwnerChange = (e) => {
+    setOwner(e.target.value)
+    if (errors.owner) {
+      setErrors({ ...errors, owner: "" })
+    }
+  }
+
+  const handleLegalEntityChange = (e) => {
+    setLegalEntity(e.target.value)
+    if (errors.legalEntity) {
+      setErrors({ ...errors, legalEntity: "" })
+    }
+  }
+
+  const handleNetMineralAcresChange = (e) => {
+    setNetMineralAcres(e.target.value)
+    if (errors.netMineralAcres && e.target.value > 0) {
+      setErrors({ ...errors, netMineralAcres: "" })
+    }
+  }
+
+  const handleMineralOwnerRoyaltyChange = (e) => {
+    setMineralOwnerRoyalty(e.target.value)
+    if (errors.mineralOwnerRoyalty && e.target.value > 0) {
+      setErrors({ ...errors, mineralOwnerRoyalty: "" })
+    }
+  }
+
+  const handleSectionNameChange = (e) => {
+    setSectionName(e.target.value)
+    if (errors.sectionName) {
+      setErrors({ ...errors, sectionName: "" })
+    }
+  }
+
+  const handleSectionChange = (e) => {
+    setSection(e.target.value)
+    if (errors.section && /^\d{3}$/.test(e.target.value)) {
+      setErrors({ ...errors, section: "" })
+    }
+  }
+
+  const handleTownshipChange = (e) => {
+    setTownship(e.target.value)
+    if (errors.township && /^\d{3}[NS]$/.test(e.target.value)) {
+      setErrors({ ...errors, township: "" })
+    }
+  }
+
+  const handleRangeChange = (e) => {
+    setRange(e.target.value)
+    if (errors.range && /^\d{3}[EW]$/.test(e.target.value)) {
+      setErrors({ ...errors, range: "" })
     }
   }
 
   return (
     <form onSubmit={handleSubmit}>
+      {message && <p>{message}</p>}
       <div>
         <label>Name:</label>
-        <input
-          type='text'
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-        />
+        <input type='text' value={name} onChange={handleNameChange} required />
+        {errors.name && <p style={{ color: "red" }}>{errors.name}</p>}
       </div>
       <div>
         <label>Owner:</label>
-        <select
-          value={owner}
-          onChange={(e) => setOwner(e.target.value)}
-          required
-        >
+        <select value={owner} onChange={handleOwnerChange} required>
           <option value=''>Select Owner</option>
           {owners.map((o) => (
             <option key={o._id} value={o._id}>
@@ -105,69 +195,85 @@ const LandHoldingForm = ({ landHolding, onSave }) => {
             </option>
           ))}
         </select>
+        {errors.owner && <p style={{ color: "red" }}>{errors.owner}</p>}
       </div>
       <div>
         <label>Legal Entity:</label>
         <input
           type='text'
           value={legalEntity}
-          onChange={(e) => setLegalEntity(e.target.value)}
+          onChange={handleLegalEntityChange}
           required
         />
+        {errors.legalEntity && (
+          <p style={{ color: "red" }}>{errors.legalEntity}</p>
+        )}
       </div>
       <div>
         <label>Net Mineral Acres:</label>
         <input
           type='number'
           value={netMineralAcres}
-          onChange={(e) => setNetMineralAcres(e.target.value)}
+          onChange={handleNetMineralAcresChange}
           required
         />
+        {errors.netMineralAcres && (
+          <p style={{ color: "red" }}>{errors.netMineralAcres}</p>
+        )}
       </div>
       <div>
         <label>Mineral Owner Royalty (%):</label>
         <input
           type='number'
           value={mineralOwnerRoyalty}
-          onChange={(e) => setMineralOwnerRoyalty(e.target.value)}
+          onChange={handleMineralOwnerRoyaltyChange}
           required
         />
+        {errors.mineralOwnerRoyalty && (
+          <p style={{ color: "red" }}>{errors.mineralOwnerRoyalty}</p>
+        )}
       </div>
       <div>
         <label>Section Name:</label>
         <input
           type='text'
           value={sectionName}
-          onChange={(e) => setSectionName(e.target.value)}
+          onChange={handleSectionNameChange}
           required
         />
+        {errors.sectionName && (
+          <p style={{ color: "red" }}>{errors.sectionName}</p>
+        )}
       </div>
       <div>
         <label>Section:</label>
         <input
           type='text'
           value={section}
-          onChange={(e) => setSection(e.target.value)}
+          onChange={handleSectionChange}
           required
         />
+        {errors.section && <p style={{ color: "red" }}>{errors.section}</p>}
       </div>
       <div>
         <label>Township:</label>
         <input
           type='text'
           value={township}
-          onChange={(e) => setTownship(e.target.value)}
+          onChange={handleTownshipChange}
           required
         />
+        {errors.township && <p style={{ color: "red" }}>{errors.township}</p>}
       </div>
       <div>
         <label>Range:</label>
         <input
           type='text'
           value={range}
-          onChange={(e) => setRange(e.target.value)}
+          onChange={handleRangeChange}
           required
         />
+        {errors.range && <p style={{ color: "red" }}>{errors.range}</p>}
       </div>
       <div>
         <label>Title Source:</label>
