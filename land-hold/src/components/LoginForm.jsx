@@ -1,6 +1,7 @@
 // src/components/LoginForm.jsx
-import React, { useState, useContext } from "react"
+import React, { useState } from "react"
 import { useNavigate, Link } from "react-router-dom"
+import { useContext } from "react"
 import { AuthContext } from "../context/AuthContext"
 import api from "../services/api"
 import Navbar from "./Navbar"
@@ -22,7 +23,7 @@ const LoginForm = () => {
         navigate("/dashboard")
       }
     } catch (error) {
-      setError("Invalid login credentials.")
+      setError("Invalid login credentials.") // Set error message on failure
     }
   }
 
@@ -31,7 +32,8 @@ const LoginForm = () => {
       <Navbar />
       <div className='flex items-center justify-center min-h-screen'>
         <div className='w-full max-w-md p-6 bg-white rounded-lg shadow-md'>
-          <h2 className='text-2xl font-bold text-center mb-4'>Login</h2>
+          <h1 className='text-2xl font-bold text-center mb-4'>Login</h1>
+          {error && <p className='text-red-500 mb-4'>{error}</p>}
           <form onSubmit={handleSubmit}>
             <div className='mb-4'>
               <label className='block text-gray-700 text-sm font-bold mb-2'>
@@ -57,10 +59,10 @@ const LoginForm = () => {
                 required
               />
             </div>
-            {error && <p className='text-red-500 mb-4'>{error}</p>}
+
             <button
               type='submit'
-              className='w-full py-2 px-4 bg-blue-500 text-white rounded-md hover:bg-blue-600'
+              className='w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline'
             >
               Login
             </button>

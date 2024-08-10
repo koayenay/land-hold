@@ -1,4 +1,3 @@
-// src/components/SignUpForm.jsx
 import React, { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import api from "../services/api"
@@ -13,6 +12,7 @@ const SignUpForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+
     try {
       const response = await api.post("/auth/signup", { email, password })
       setMessage(response.data.message)
