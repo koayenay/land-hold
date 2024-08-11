@@ -1,14 +1,30 @@
-// OwnerForm.jsx
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import api from "../services/api"
 
-const OwnerForm = ({ onSave }) => {
+const OwnerForm = ({ owner, onSave }) => {
   const [ownerName, setOwnerName] = useState("")
   const [entityType, setEntityType] = useState("Company")
   const [ownerType, setOwnerType] = useState("Competitor")
   const [address, setAddress] = useState("")
   const [totalLandHoldings, setTotalLandHoldings] = useState(0)
   const [error, setError] = useState("")
+  const [success, setSuccess] = useState("")
+
+  useEffect(() => {
+    if (owner) {
+      setOwnerName(owner.ownerName)
+      setEntityType(owner.entityType)
+      setOwnerType(owner.ownerType)
+      setAddress(owner.address)
+      setTotalLandHoldings(owner.totalLandHoldings)
+    } else {
+      setOwnerName("")
+      setEntityType("Company")
+      setOwnerType("Competitor")
+      setAddress("")
+      setTotalLandHoldings(0)
+    }
+  }, [owner])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -20,20 +36,37 @@ const OwnerForm = ({ onSave }) => {
         address,
         totalLandHoldings,
       }
-      await api.post("/owners", newOwner)
-      onSave() // Refresh list or notify parent component
-      setOwnerName("")
-      setEntityType("Company")
-      setOwnerType("Competitor")
-      setAddress("")
-      setTotalLandHoldings(0)
-    } catch (error) {
-      if (error.response) {
-        console.error("Error creating owner:", error.response.data)
-        setError(error.response.data.message)
-      } else {
-        console.error("Error creating owner:", error)
+
+      const response = await api.post("/owners", newOwner)
+
+      if (response.status === 201) {
+        console.log("Success:", response.data)
+
+        if (typeof onSave === "function") {
+          onSave()
+        }
+
+        setSuccess("Owner saved successfully!")
+        setError("")
+
+        setOwnerName("")
+        setEntityType("Company")
+        setOwnerType("Competitor")
+        setAddress("")
+        setTotalLandHoldings(0)
+
+        setTimeout(() => {
+          setSuccess("")
+        }, 5000)
       }
+    } catch (error) {
+      console.error("Error occurred:", error)
+      setError("An unexpected error occurred.")
+      setSuccess("")
+
+      setTimeout(() => {
+        setError("")
+      }, 5000)
     }
   }
 
@@ -88,6 +121,7 @@ const OwnerForm = ({ onSave }) => {
           onChange={(e) => setTotalLandHoldings(e.target.value)}
         />
       </div>
+      {success && <p style={{ color: "green" }}>{success}</p>}
       {error && <p style={{ color: "red" }}>{error}</p>}
       <button type='submit'>Save Owner</button>
     </form>

@@ -11,7 +11,6 @@ const Dashboard = () => {
   const [selectedOwner, setSelectedOwner] = useState(null)
   const [selectedLandHolding, setSelectedLandHolding] = useState(null)
 
-  // Fetch data on component mount
   useEffect(() => {
     const fetchData = async () => {
       const ownerResponse = await api.get("/owners")
@@ -24,26 +23,9 @@ const Dashboard = () => {
     fetchData()
   }, [])
 
-  // Save owner and refresh the list
   const handleOwnerSave = () => {
     setSelectedOwner(null)
     fetchOwners()
-  }
-
-  // Save landholding and refresh the list
-  const handleLandHoldingSave = () => {
-    setSelectedLandHolding(null)
-    fetchLandHoldings()
-  }
-
-  // Edit owner
-  const handleEditOwner = (owner) => {
-    setSelectedOwner(owner)
-  }
-
-  // Edit landholding
-  const handleEditLandHolding = (landHolding) => {
-    setSelectedLandHolding(landHolding)
   }
 
   const fetchOwners = async () => {
@@ -51,9 +33,8 @@ const Dashboard = () => {
     setOwners(ownerResponse.data)
   }
 
-  const fetchLandHoldings = async () => {
-    const landHoldingResponse = await api.get("/landholdings")
-    setLandHoldings(landHoldingResponse.data)
+  const handleEditOwner = (owner) => {
+    setSelectedOwner(owner)
   }
 
   return (
@@ -62,13 +43,14 @@ const Dashboard = () => {
       <OwnerForm owner={selectedOwner} onSave={handleOwnerSave} />
       <OwnerList owners={owners} onEdit={handleEditOwner} />
 
+      {/* Other components, e.g., LandHoldingForm and LandHoldingList */}
       <LandHoldingForm
         landHolding={selectedLandHolding}
-        onSave={handleLandHoldingSave}
+        onSave={() => fetchLandHoldings()}
       />
       <LandHoldingList
         landHoldings={landHoldings}
-        onEdit={handleEditLandHolding}
+        onEdit={setSelectedLandHolding}
       />
     </div>
   )

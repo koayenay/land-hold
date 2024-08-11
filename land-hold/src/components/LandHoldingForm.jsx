@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react"
 import api from "../services/api"
 
-const LandHoldingForm = ({ landHolding }) => {
+const LandHoldingForm = ({ landHolding, onSave }) => {
   const [name, setName] = useState("")
   const [owner, setOwner] = useState("")
   const [legalEntity, setLegalEntity] = useState("")
@@ -14,9 +14,9 @@ const LandHoldingForm = ({ landHolding }) => {
   const [titleSource, setTitleSource] = useState("Class A")
   const [owners, setOwners] = useState([])
 
-  // Error and success message states
   const [errors, setErrors] = useState({})
   const [message, setMessage] = useState("")
+  const [messageType, setMessageType] = useState("") // To track success or error
 
   useEffect(() => {
     const fetchOwners = async () => {
@@ -43,6 +43,17 @@ const LandHoldingForm = ({ landHolding }) => {
       setTownship(landHolding.township)
       setRange(landHolding.range)
       setTitleSource(landHolding.titleSource)
+    } else {
+      setName("")
+      setOwner("")
+      setLegalEntity("")
+      setNetMineralAcres(0)
+      setMineralOwnerRoyalty(0)
+      setSectionName("")
+      setSection("")
+      setTownship("")
+      setRange("")
+      setTitleSource("Class A")
     }
   }, [landHolding])
 
@@ -89,13 +100,17 @@ const LandHoldingForm = ({ landHolding }) => {
       if (landHolding) {
         await api.put(`/landholdings/${landHolding._id}`, data)
         setMessage("Land holding updated successfully.")
-        console.log("Land holding updated successfully.")
+        setMessageType("success")
       } else {
         await api.post("/landholdings", data)
         setMessage("Land holding saved successfully.")
-        console.log("Land holding saved successfully.")
+        setMessageType("success")
       }
-      // Optional: Reset form fields after save
+
+      if (typeof onSave === "function") {
+        onSave()
+      }
+
       setName("")
       setOwner("")
       setLegalEntity("")
@@ -109,11 +124,10 @@ const LandHoldingForm = ({ landHolding }) => {
       setErrors({})
     } catch (error) {
       setMessage("Error saving land holding. Please try again.")
-      console.error("Error saving land holding:", error)
+      setMessageType("error")
     }
   }
 
-  // Handle change functions for inputs to update state and clear errors
   const handleNameChange = (e) => {
     setName(e.target.value)
     if (errors.name) {
@@ -179,7 +193,6 @@ const LandHoldingForm = ({ landHolding }) => {
 
   return (
     <form onSubmit={handleSubmit}>
-      {message && <p>{message}</p>}
       <div>
         <label>Name:</label>
         <input type='text' value={name} onChange={handleNameChange} required />
@@ -288,6 +301,11 @@ const LandHoldingForm = ({ landHolding }) => {
         </select>
       </div>
       <button type='submit'>Save Land Holding</button>
+      {message && (
+        <p style={{ color: messageType === "success" ? "green" : "red" }}>
+          {message}
+        </p>
+      )}
     </form>
   )
 }
