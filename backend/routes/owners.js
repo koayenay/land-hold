@@ -16,7 +16,6 @@ router.get("/", async (req, res) => {
   }
 })
 
-// Create a new owner
 router.post("/", async (req, res) => {
   try {
     const { ownerName, entityType, ownerType, address, totalLandHoldings } =
@@ -30,7 +29,12 @@ router.post("/", async (req, res) => {
     })
 
     const newOwner = await owner.save()
-    res.status(201).json(newOwner)
+
+    // Return a well-structured response
+    res.status(201).json({
+      message: "Owner created successfully",
+      data: newOwner,
+    })
   } catch (error) {
     if (error.code === 11000) {
       // Duplicate key error
@@ -39,7 +43,7 @@ router.post("/", async (req, res) => {
       })
     }
     console.error("Error creating owner:", error)
-    res.status(500).json({ message: "Server error" })
+    res.status(500).json({ message: "Server error", error: error.message })
   }
 })
 
